@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Address {
+  id           String   @id
+  street       String?
+  ward         String?
+  district     String?
+  city         String?
+  created_time DateTime @default(now())
+  updated_time DateTime @updatedAt
+  shop_id      String?  @unique
+  user_id      String?
+  menu_id      String?  @unique
+  Menu         Menu?    @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  Shop         Shop?    @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  User         User?    @relation(fields: [user_id], references: [id])
+}
+
+model Brand {
+  id           String   @id
+  name         String
+  image_url    String
+  created_time DateTime @default(now())
+  updated_time DateTime @updatedAt
+  user_id      String   @unique
+  User         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  Shop         Shop[]
+}
+
+model Item {
+  id           String      @id
+  name         String
+  price        Float
+  description  String
+  image_url    String
+  created_time DateTime    @default(now())
+  updated_time DateTime    @updatedAt
+  shop_id      String?
+  Shop         Shop?       @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  OrderItem    OrderItem[]
+  Menu         Menu[]
+}
+
+model Menu {
+  id                      String   @id
+  name                    String
+  image                   String
+  status                  Status
+  description             String
+  level                   String
+  created_time            DateTime @default(now())
+  updated_time            DateTime
+  shop_id                 String?
+  user_id                 String?
+  addressId               String?
+  Address                 Address?
+  Shop                    Shop?    @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  User_Menu_user_idToUser User?    @relation("Menu_user_idToUser", fields: [user_id], references: [id], onDelete: Cascade)
+  Order                   Order[]
+  User_FavoriteMenus      User[]   @relation("FavoriteMenus")
+  Item                    Item[]
+}
+
+model Order {
+  id           String      @id
+  menu_id      String?
+  shop_id      String?
+  invite_code  String      @unique
+  status       String      @default("unpaid")
+  created_time DateTime    @default(now())
+  updated_time DateTime    @updatedAt
+  Menu         Menu?       @relation(fields: [menu_id], references: [id])
+  Shop         Shop?       @relation(fields: [shop_id], references: [id])
+  OrderItem    OrderItem[]
+  User         User[]
+}
+
+model OrderHistory {
+  id           String      @id
+  created_time DateTime    @default(now())
+  updated_time DateTime
+  user_id      String?
+  User         User?       @relation(fields: [user_id], references: [id])
+  OrderItem    OrderItem[]
+}
+
+model OrderItem {
+  id               String        @id
+  name             String
+  price            Float
+  description      String
+  image_url        String
+  quantity         Int
+  created_time     DateTime      @default(now())
+  updated_time     DateTime      @updatedAt
+  item_id          String?
+  order_id         String?
+  order_history_id String?
+  user_id          String?
+  Item             Item?         @relation(fields: [item_id], references: [id])
+  OrderHistory     OrderHistory? @relation(fields: [order_history_id], references: [id])
+  Order            Order?        @relation(fields: [order_id], references: [id])
+  User             User?         @relation(fields: [user_id], references: [id])
+}
+
+model Shop {
+  id           String   @id
+  name         String
+  created_time DateTime @default(now())
+  updated_time DateTime @updatedAt
+  brand_id     String?
+  Address      Address?
+  Item         Item[]
+  Menu         Menu[]
+  Order        Order[]
+  Brand        Brand?   @relation(fields: [brand_id], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                      String         @id
+  email                   String         @unique
+  name                    String
+  hashed_password         String
+  image                   String
+  phone_number            String
+  gender                  String
+  created_time            DateTime       @default(now())
+  updated_time            DateTime       @updatedAt
+  Address                 Address[]
+  Brand                   Brand?
+  Menu_Menu_user_idToUser Menu[]         @relation("Menu_user_idToUser")
+  OrderHistory            OrderHistory[]
+  OrderItem               OrderItem[]
+  Menu_FavoriteMenus      Menu[]         @relation("FavoriteMenus")
+  Order                   Order[]
+}
+
+enum Status {
+  PUBLISHED
+  PRIVATE
+}
