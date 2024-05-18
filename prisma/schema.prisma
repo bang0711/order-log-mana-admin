@@ -72,7 +72,6 @@ model Order {
   id           String      @id
   menu_id      String?
   shop_id      String?
-  invite_code  String      @unique
   status       String      @default("unpaid")
   created_time DateTime    @default(now())
   updated_time DateTime    @updatedAt
